@@ -17,7 +17,9 @@ const SetOperations = () => {
   const handleAddSubset = (event) => {
     event.preventDefault();
     const subsetArray = subset.replace(/\s/g, "").split(",");
-    const validSubset = subsetArray.every((element) => universe.includes(element));
+    const validSubset = subsetArray.every((element) =>
+      universe.includes(element)
+    );
     if (validSubset) {
       setSubsets([...subsets, subset]);
       setSubset("");
@@ -41,7 +43,9 @@ const SetOperations = () => {
 
   const handleUnion = () => {
     const unionSet = selectedSubsets.reduce((acc, subsetIndex) => {
-      const subsetPairs = subsets[subsetIndex].split(",").map((element) => element.trim());
+      const subsetPairs = subsets[subsetIndex]
+        .split(",")
+        .map((element) => element.trim());
       return new Set([...acc, ...subsetPairs]);
     }, new Set());
     return `Unión: {${[...unionSet].join(", ")}}`;
@@ -51,7 +55,9 @@ const SetOperations = () => {
     if (selectedSubsets.length < 2) return "Intersección: {}";
     const firstSet = new Set(subsets[selectedSubsets[0]].split(","));
     const intersection = selectedSubsets.slice(1).reduce((acc, subsetIndex) => {
-      const subsetPairs = subsets[subsetIndex].split(",").map((element) => element.trim());
+      const subsetPairs = subsets[subsetIndex]
+        .split(",")
+        .map((element) => element.trim());
       const subsetSet = new Set(subsetPairs);
       return new Set([...acc].filter((x) => subsetSet.has(x)));
     }, firstSet);
@@ -62,7 +68,9 @@ const SetOperations = () => {
     if (selectedSubsets.length < 2) return "";
     const firstSet = new Set(subsets[selectedSubsets[0]].split(","));
     const difference = selectedSubsets.slice(1).reduce((acc, subsetIndex) => {
-      const subsetSet = new Set(subsets[subsetIndex].split(",").map((element) => element.trim()));
+      const subsetSet = new Set(
+        subsets[subsetIndex].split(",").map((element) => element.trim())
+      );
       return new Set([...acc].filter((x) => !subsetSet.has(x)));
     }, firstSet);
     return `Diferencia: {${[...difference].join(", ")}}`;
@@ -71,8 +79,14 @@ const SetOperations = () => {
   const handleSymmetricDifference = () => {
     if (selectedSubsets.length < 2) return "";
     const symmetricDifference = selectedSubsets.reduce((acc, subsetIndex) => {
-      const subsetSet = new Set(subsets[subsetIndex].split(",").map((element) => element.trim()));
-      return new Set([...acc].filter((x) => !subsetSet.has(x)).concat([...subsetSet].filter((x) => !acc.has(x))));
+      const subsetSet = new Set(
+        subsets[subsetIndex].split(",").map((element) => element.trim())
+      );
+      return new Set(
+        [...acc]
+          .filter((x) => !subsetSet.has(x))
+          .concat([...subsetSet].filter((x) => !acc.has(x)))
+      );
     }, new Set());
     return `Diferencia Simétrica: {${[...symmetricDifference].join(", ")}}`;
   };
@@ -104,11 +118,25 @@ const SetOperations = () => {
     const subsetResults = [];
     for (let i = 0; i < selectedSubsets.length - 1; i++) {
       for (let j = i + 1; j < selectedSubsets.length; j++) {
-        const setA = new Set(subsets[selectedSubsets[i]].split(",").map((element) => element.trim()));
-        const setB = new Set(subsets[selectedSubsets[j]].split(",").map((element) => element.trim()));
+        const setA = new Set(
+          subsets[selectedSubsets[i]]
+            .split(",")
+            .map((element) => element.trim())
+        );
+        const setB = new Set(
+          subsets[selectedSubsets[j]]
+            .split(",")
+            .map((element) => element.trim())
+        );
         const isSubsetAB = [...setA].every((x) => setB.has(x));
         const isSubsetBA = [...setB].every((x) => setA.has(x));
-        subsetResults.push(`${getSubsetLabel(selectedSubsets[i])} ⊆ ${getSubsetLabel(selectedSubsets[j])}: ${isSubsetAB}, ${getSubsetLabel(selectedSubsets[j])} ⊆ ${getSubsetLabel(selectedSubsets[i])}: ${isSubsetBA}`);
+        subsetResults.push(
+          `${getSubsetLabel(selectedSubsets[i])} ⊆ ${getSubsetLabel(
+            selectedSubsets[j]
+          )}: ${isSubsetAB}, ${getSubsetLabel(
+            selectedSubsets[j]
+          )} ⊆ ${getSubsetLabel(selectedSubsets[i])}: ${isSubsetBA}`
+        );
       }
     }
     return subsetResults.join("\n");
@@ -122,7 +150,9 @@ const SetOperations = () => {
     const value = parseInt(event.target.value);
     const checked = event.target.checked;
     setSelectedSubsets((prevSelected) =>
-      checked ? [...prevSelected, value] : prevSelected.filter((i) => i !== value)
+      checked
+        ? [...prevSelected, value]
+        : prevSelected.filter((i) => i !== value)
     );
   };
 
@@ -133,39 +163,59 @@ const SetOperations = () => {
   return (
     <section>
       <ul className={styles.menu_options}>
-        <li className={styles.menu_options_item} onClick={() => handleOperationSelection(handleUnion)}>
+        <li
+          className={styles.menu_options_item}
+          onClick={() => handleOperationSelection(handleUnion)}
+        >
           Unión
         </li>
-        <li className={styles.menu_options_item} onClick={() => handleOperationSelection(handleIntersection)}>
+        <li
+          className={styles.menu_options_item}
+          onClick={() => handleOperationSelection(handleIntersection)}
+        >
           Intersección
         </li>
-        <li className={styles.menu_options_item} onClick={() => handleOperationSelection(handleDifference)}>
+        <li
+          className={styles.menu_options_item}
+          onClick={() => handleOperationSelection(handleDifference)}
+        >
           Diferencia
         </li>
-        <li className={styles.menu_options_item} onClick={() => handleOperationSelection(handleSymmetricDifference)}>
+        <li
+          className={styles.menu_options_item}
+          onClick={() => handleOperationSelection(handleSymmetricDifference)}
+        >
           Diferencia Simétrica
         </li>
-        <li className={styles.menu_options_item} onClick={() => handleOperationSelection(handleComplement)}>
+        <li
+          className={styles.menu_options_item}
+          onClick={() => handleOperationSelection(handleComplement)}
+        >
           Complemento
         </li>
-        <li className={styles.menu_options_item} onClick={() => handleOperationSelection(handleCartesianProduct)}>
+        <li
+          className={styles.menu_options_item}
+          onClick={() => handleOperationSelection(handleCartesianProduct)}
+        >
           Producto Cartesiano
         </li>
-        <li className={styles.menu_options_item} onClick={() => handleOperationSelection(verifySubset)}>
+        <li
+          className={styles.menu_options_item}
+          onClick={() => handleOperationSelection(verifySubset)}
+        >
           Verificar Subconjuntos
         </li>
       </ul>
 
       <div className={`page ${styles.container}`}>
-        <div className={styles.record_container}>
-          <h3>Historial</h3>
-        </div>
-
         <div className={styles.calculatorContainer}>
           <h2 className={styles.calculatorTitle}>Conjuntos</h2>
 
           <div className={styles.inputs_container}>
-            <form className={styles.input_form} onSubmit={(e) => e.preventDefault()}>
+            <form
+              className={styles.input_form}
+              onSubmit={(e) => e.preventDefault()}
+            >
               <label htmlFor="universe">Conjunto Universo:</label>
               <div className={styles.input_container}>
                 <input
@@ -200,6 +250,7 @@ const SetOperations = () => {
           <div className={styles.results_container}>
             <div className={styles.sets_container}>
               <label>Subconjuntos:</label>
+              <p>Seleccione los subconjuntos con los que desea trabajar: </p>
               {subsets.map((subset, index) => (
                 <div className={styles.subset_card} key={index}>
                   <input

@@ -25,3 +25,72 @@
   margin-top: 5px;
 }
 
+.matrixbutton{
+  background-color: var(--primary-background-color);
+  color: white;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 5px;
+  outline: none;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 5px;
+  margin-bottom: 10px;
+
+}
+
+.secondary_button{
+  background-color: var(--primary-background-color);
+  color: white;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 5px;
+  outline: none;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 5px;
+}
+
+.hasse {
+  order: 1;
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 1.74375px 13.95px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  border-radius: 5px;
+  min-height: 100vh;
+  height: max-content;
+}
+
+.buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.maxmin {
+  order: 2;
+  flex-basis: 35%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 1.74375px 13.95px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  border-radius: 5px;
+  min-height: 100vh;
+  height: max-content;
+}
+
+.container {
+  width: calc(100% - 40px);
+  display: flex;
+  margin-top: 30px;
+  flex-direction: row;
+  gap: 20px;
+  justify-content: space-between;
+  align-items: flex-start;
+}

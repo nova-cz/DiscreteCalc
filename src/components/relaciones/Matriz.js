@@ -129,6 +129,21 @@ class RelationalMatrix extends React.Component {
         }
     };
 
+    // Función para limpiar la página
+    handleCleanPage = () => {
+        this.setState({
+            n: 0,
+            pairs: [],
+            matrices: [],
+            generated: false,
+            inverses: [],
+            complementaries: [],
+            compositions: [],
+            selectedMatrix1: null,
+            selectedMatrix2: null,
+        });
+    };
+
     render() {
         return (
             <div className={styles.content}>
@@ -143,6 +158,8 @@ class RelationalMatrix extends React.Component {
                         <br />
                         {this.state.n > 0 && this.generateFields()}
                         {this.state.n > 0 && <button className={styles.main_button} onClick={this.generateMatrices}>Generar Matrices de Relación</button>}
+                        {this.state.n > 0 && <button className={styles.clean_button} onClick={this.handleCleanPage}>Limpiar</button>}
+
                     </div>
                     
                     <div className={styles.results}>
@@ -210,7 +227,7 @@ class RelationalMatrix extends React.Component {
                                         <option key={index} value={index}>Matriz {index + 1}</option>
                                     ))}
                                 </select>
-                                <button onClick={this.calculateSelectedComposition}>Calcular Composición</button>
+                                <button className={styles.comp}  onClick={this.calculateSelectedComposition}>Calcular Composición</button>
                             </div>
                         )}
 

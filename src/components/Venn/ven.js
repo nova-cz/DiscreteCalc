@@ -1,69 +1,126 @@
 import React, { useState, useRef } from "react";
 import * as venn from "venn.js";
 import * as d3 from "d3";
+import styles from "./Venn.module.css";
 
 const VennDiagram = () => {
   const [universalSet, setUniversalSet] = useState([]);
-  const [sets, setSets] = useState([[], [], []]);
+  const [tempUniversalSet, setTempUniversalSet] = useState("");
+  const [sets, setSets] = useState([]);
+  const [currentSet, setCurrentSet] = useState("");
   const [error, setError] = useState("");
+  const [vennRegions, setVennRegions] = useState([]);
   const vennRef = useRef(null);
 
   const generateVennDiagram = () => {
-    const validateSubsets = () => {
-      for (let i = 0; i < sets.length; i++) {
-        if (!sets[i].every((n) => universalSet.includes(n))) {
-          setError(
-            `Todos los elementos de Set ${
-              i + 1
-            } deben estar en el conjunto universal.`
-          );
-          return false;
-        }
-      }
-      setError("");
-      return true;
-    };
-
-    if (validateSubsets() && vennRef.current) {
-      const setsData = sets.map((set, index) => ({
-        sets: [`Set ${index + 1}`],
-        size: set.length,
-        label: `Set ${index + 1} (${set.length})`,
+    if (vennRef.current) {
+      const colors = d3.scaleOrdinal(d3.schemeCategory10);
+      const labels = sets.map((set, index) => ({
+        label: `${String.fromCharCode(65 + index)} (${set.length})`,
+        color: colors(index),
       }));
 
+      const setsData = sets.map((set, index) => ({
+        sets: [`${String.fromCharCode(65 + index)}`],
+        size: set.length,
+        label: labels[index].label,
+        elements: set,
+        color: labels[index].color,
+      }));
+
+      // Calculate pairwise intersections
       for (let i = 0; i < sets.length; i++) {
         for (let j = i + 1; j < sets.length; j++) {
-          const intersection = sets[i].filter((x) =>
-            sets[j].includes(x)
-          ).length;
-          if (intersection > 0) {
+          const intersection = sets[i].filter((x) => sets[j].includes(x));
+          if (intersection.length > 0) {
             setsData.push({
-              sets: [`Set ${i + 1}`, `Set ${j + 1}`],
-              size: intersection,
+              sets: [
+                `${String.fromCharCode(65 + i)}`,
+                `${String.fromCharCode(65 + j)}`,
+              ],
+              size: intersection.length,
+              elements: intersection,
+              color: colors(sets.length),
             });
+          }
+        }
+      }
+
+      // Calculate three-way intersections
+      for (let i = 0; i < sets.length; i++) {
+        for (let j = i + 1; j < sets.length; j++) {
+          for (let k = j + 1; k < sets.length; k++) {
+            const intersection = sets[i]
+              .filter((x) => sets[j].includes(x))
+              .filter((x) => sets[k].includes(x));
+            if (intersection.length > 0) {
+              setsData.push({
+                sets: [
+                  `${String.fromCharCode(65 + i)}`,
+                  `${String.fromCharCode(65 + j)}`,
+                  `${String.fromCharCode(65 + k)}`,
+                ],
+                size: intersection.length,
+                elements: intersection,
+                color: colors(sets.length),
+              });
+            }
           }
         }
       }
 
       const chart = venn.VennDiagram().width(500).height(500);
 
-      const colors = d3.scaleOrdinal(d3.schemeCategory10);
-
       d3.select(vennRef.current).datum(setsData).call(chart);
 
-      d3.selectAll("path")
-        .style("fill", (d, i) => colors(i))
-        .style("opacity", 0.6);
+      const regions = d3.select(vennRef.current).datum();
+      setVennRegions(regions);
 
-      var tooltip = d3
+      const tooltip = d3
         .select("body")
         .append("div")
-        .attr("class", "venntooltip");
+        .attr("class", "venntooltip")
+        .style("width", "fit-content")
+        .style("position", "absolute")
+        .style("background", "#141414")
+        .style("border", "1px solid #000")
+        .style("padding", "10px")
+        .style("border-radius", "5px")
+        .style("opacity", 0);
 
-      d3.selectAll("path")
-        .style("stroke-opacity", 0)
-        .style("stroke", "#fff")
-        .style("stroke-width", 3);
+      d3.selectAll("g")
+        .on("mouseover", function (event, d) {
+          tooltip.transition().duration(400).style("opacity", 0.9);
+          tooltip
+            .html(`Conjunto ${d.sets.join(" ∩ ")}: ${d.elements.join(", ")}`)
+            .style("left", `${event.pageX + 28}px`)
+            .style("top", `${event.pageY - 28}px`);
+
+          d3.select(this).transition("tooltip").duration(400);
+
+          d3.select(this)
+            .select("path")
+            .style("stroke", "#000")
+            .style("stroke-opacity", 1)
+            .style("stroke-width", 3);
+        })
+        .on("mousemove", function (event) {
+          tooltip
+            .style("left", `${event.pageX + 50}px`)
+            .style("top", `${event.pageY - 50}px`);
+        })
+        .on("mouseout", function () {
+          tooltip.transition().duration(400).style("opacity", 0);
+          d3.select(this).select("path").style("stroke-opacity", 0);
+        });
+
+      d3.selectAll("text").each(function (d) {
+        let labelText = "";
+        if (d.elements.length > 0) {
+          labelText = `${d.sets.join(" ∩ ")}: ${d.elements.join(", ")}`;
+        }
+        d3.select(this).text(labelText);
+      });
     }
   };
 
@@ -75,46 +132,140 @@ const VennDiagram = () => {
       .filter((n) => !isNaN(n));
   };
 
-  const handleUniversalSetChange = (e) => {
-    const newSet = parseInput(e.target.value);
+  const handleUniversalSetSubmit = (e) => {
+    e.preventDefault();
+    const newSet = parseInput(tempUniversalSet);
     setUniversalSet(newSet);
+    setTempUniversalSet("");
     setError("");
   };
 
-  const handleChangeSet = (index, e) => {
-    const newSet = parseInput(e.target.value);
-    const newSets = [...sets];
-    newSets[index] = newSet;
-    setSets(newSets);
+  const handleUniversalSetChange = (e) => {
+    setTempUniversalSet(e.target.value);
+  };
+
+  const handleChangeSet = (e) => {
+    setCurrentSet(e.target.value);
     setError("");
   };
 
-  const addNewSet = () => {
-    setSets([...sets, []]);
+  const handleAddSet = () => {
+    if (currentSet) {
+      const newSet = parseInput(currentSet);
+      if (newSet.every((n) => universalSet.includes(n))) {
+        setSets([...sets, newSet]);
+        setCurrentSet("");
+        setError("");
+      } else {
+        setError(
+          "Todos los elementos del subconjunto deben estar en el conjunto universal."
+        );
+      }
+    }
+  };
+
+  const handleClear = () => {
+    setUniversalSet([]);
+    setTempUniversalSet("");
+    setSets([]);
+    setCurrentSet("");
+    setError("");
+    setVennRegions([]);
+    if (vennRef.current) {
+      d3.select(vennRef.current).selectAll("*").remove();
+    }
   };
 
   return (
-    <div>
-      <input
-        type="text"
-        placeholder="Universal Set"
-        onChange={handleUniversalSetChange}
-      />
-      {sets.map((set, index) => (
-        <input
-          key={index}
-          type="text"
-          placeholder={`Set ${index + 1}`}
-          onChange={(e) => handleChangeSet(index, e)}
-          disabled={universalSet.length === 0}
-        />
-      ))}
-      <button onClick={addNewSet} disabled={universalSet.length === 0}>
-        Agregar nuevo conjunto
-      </button>
-      <button onClick={generateVennDiagram}>Generar Diagrama de Venn</button>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <div ref={vennRef}></div>
+    <div className={`page ${styles.container}`}>
+      <h2>Diagramas de Venn</h2>
+
+      <div className={styles.inputs_container}>
+        <form
+          className={styles.input_form}
+          onSubmit={handleUniversalSetSubmit}
+        >
+          <label htmlFor="universe">Conjunto Universo:</label>
+          <div className={styles.input_container}>
+            <input
+              id="universe"
+              type="text"
+              className={styles.input_form}
+              placeholder="Conjunto Universal"
+              onChange={handleUniversalSetChange}
+              value={tempUniversalSet}
+            />
+            <button type="submit" className={styles.button_form}>
+              <img src="/icon_send.svg" />
+            </button>
+          </div>
+        </form>
+
+        <form
+          className={styles.input_form}
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleAddSet();
+          }}
+        >
+          <label>Ingrese un Conjunto</label>
+          <div className={styles.input_container}>
+            <input
+              type="text"
+              placeholder={`Ingrese un Conjunto`}
+              value={currentSet}
+              onChange={handleChangeSet}
+              className={styles.input_form}
+              disabled={universalSet.length === 0}
+            />
+            <button
+              type="submit"
+              className={styles.button_form}
+              disabled={!currentSet}
+            >
+              <img src="/icon_send.svg" />
+            </button>
+          </div>
+        </form>
+
+        {error && <p style={{ color: "red" }}>{error}</p>}
+      </div>
+
+      <div className={styles.cols_container}>
+        <div className={styles.venn_container}>
+          <div className={styles.venn} ref={vennRef}></div>
+        </div>
+
+        <div className={styles.results_container}>
+          <div className={styles.buttons_container}>
+            <button className={styles.button} onClick={generateVennDiagram}>
+              Generar Diagrama de Venn
+            </button>
+            <button className={styles.button} onClick={handleClear}>
+              Limpiar
+            </button>
+          </div>
+
+          <h3>Conjunto Universo:</h3>
+          <p>{universalSet.join(", ")}</p>
+          <h3>Subconjuntos Ingresados:</h3>
+          <ul>
+            {sets.map((set, index) => (
+              <li key={index}>
+                {String.fromCharCode(65 + index)}: {set.join(", ")}
+              </li>
+            ))}
+          </ul>
+          <h3>Regiones del Diagrama:</h3>
+          <ul>
+            {vennRegions.map((region, index) => (
+              <li key={index}>
+                {region.sets.join(" ∩ ")}: {region.size}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     </div>
   );
 };

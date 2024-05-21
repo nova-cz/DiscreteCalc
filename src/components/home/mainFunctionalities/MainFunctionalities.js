@@ -27,7 +27,7 @@ function MainFunctionalities() {
             <img className={styles.img}  src="/img.png" />
             <div className={styles.info}>
               <h3 className={styles.title}>Grafos</h3>
-              <p className={styles.description}>Grafos entre conjuntos</p>
+              <p className={styles.description}>Grafos mediante conjuntos</p>
             </div>
           </a>
         </div>
@@ -36,7 +36,7 @@ function MainFunctionalities() {
             <img className={styles.img}  src="/img.png" />
             <div className={styles.info}>
               <h3 className={styles.title}>Algebra Modular</h3>
-              <p className={styles.description}>Clases y ecuaciones</p>
+              <p className={styles.description}>Clases</p>
             </div>
           </a>
         </div>
