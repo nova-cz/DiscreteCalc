@@ -1,0 +1,27 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+}
+
+.input {
+  width: 80%;
+  padding: 20px 15px;
+  font-size: 18px;
+}
+
+.main_button {
+  background-color: var(--primary-background-color);
+  color: white;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 5px;
+  outline: none;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 5px;
+}
+

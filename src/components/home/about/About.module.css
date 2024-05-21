@@ -1,0 +1,28 @@
+.container {
+    margin: 80px 0px;
+    background-color: var(--secondary-background-color);
+    padding: 40px;
+    border-radius: 10px;
+}
+
+.title {
+    text-align: center;
+    margin: 0px;
+    margin-bottom: 50px;
+}
+
+.info {
+    margin: 0px auto;
+    font-size: 18px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);  
+    gap: 40px;
+    justify-content: center;
+    align-items: center;
+    line-height: 1.4em;
+}
+
+.image {
+    width: 100%;
+    border-radius: 5px;
+}

@@ -1,0 +1,40 @@
+.container {
+    padding: 0px 20px;
+}
+
+.title {
+    text-align: center;
+    margin: 40px 0px;
+}
+
+.cards_container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.card {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    text-decoration: none;
+    color: #000;
+}
+
+.icon_container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: var(--primary-background-color);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.icon {
+    width: 30px;
+    height: 30px;
+}
+
+.card_info {
+    margin: auto 0px;
+}
