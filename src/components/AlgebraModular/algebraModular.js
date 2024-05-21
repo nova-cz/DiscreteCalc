@@ -228,7 +228,7 @@ class ModularAlgebraSolver extends React.Component {
           </div>
         </div>
 
-        <div className={styles.operation_container}>
+        <div className={styles.operation_container} style={{ display:"none" }}>
           <h3>Resolver sistema de ecuaciones lineales:</h3>
           <form className={styles.form} onSubmit={this.solveLinearEquations}>
             <input
