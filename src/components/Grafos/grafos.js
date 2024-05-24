@@ -6,7 +6,6 @@ import styles from "./Graphs.module.css";
 cytoscape.use(dagre);
 
 const Graphs = () => {
-  const [inputValue, setInputValue] = useState("");
   const [matrixSize, setMatrixSize] = useState(0);
   const [graphData, setGraphData] = useState({
     nodes: [],
@@ -14,7 +13,7 @@ const Graphs = () => {
   });
   const [clearGraph, setClearGraph] = useState(false);
   const [relationMatrix, setRelationMatrix] = useState([]);
-  const [orderedPairs, setOrderedPairs] = useState("");
+  const [orderedPairs, setOrderedPairs] = useState([]);
   const [selectedNodes, setSelectedNodes] = useState([]);
   const [degrees, setDegrees] = useState([]);
 
@@ -87,35 +86,20 @@ const Graphs = () => {
 
   useEffect(() => {
     if (relationMatrix.length === 0) return;
-  
+
     const pairs = [];
-    const visitedPairs = new Set();
     relationMatrix.forEach((row, i) => {
       row.forEach((value, j) => {
         if (value === 1) {
           const sourceNode = i + 1;
           const targetNode = j + 1;
-          const pair1 = `(${sourceNode},${targetNode})`;
-          const pair2 = `(${targetNode},${sourceNode})`;
-  
-          if (!visitedPairs.has(pair1)) {
-            visitedPairs.add(pair1);
-            pairs.push(pair1);
-          }
-          if (!visitedPairs.has(pair2)) {
-            visitedPairs.add(pair2);
-            pairs.push(pair2);
-          }
+          const pair = `(${sourceNode},${targetNode})`;
+          pairs.push(pair);
         }
       });
     });
-    setOrderedPairs(pairs.join(", "));
+    setOrderedPairs(pairs);
   }, [relationMatrix]);
-  
-
-  const handleInputChange = (e) => {
-    setInputValue(e.target.value);
-  };
 
   const handleMatrixSizeChange = (e) => {
     setMatrixSize(Number(e.target.value));
@@ -136,38 +120,78 @@ const Graphs = () => {
       )
     );
     setRelationMatrix(newMatrix);
+
+    const sourceNode = i + 1;
+    const targetNode = j + 1;
+    const pair = `(${sourceNode},${targetNode})`;
+
+    // Agrega el par solo si el valor en la matriz es 1
+    if (newMatrix[i][j] === 1) {
+      setOrderedPairs((prevPairs) => [...prevPairs, pair]);
+    }
   };
 
   useEffect(() => {
-    if (relationMatrix.length === 0) return;
-  
-    const pairs = [];
-    const visitedPairs = new Set();
+    const nodes = [];
+    const edges = [];
+    const undirectedEdges = new Set();
+
     relationMatrix.forEach((row, i) => {
       row.forEach((value, j) => {
         if (value === 1) {
           const sourceNode = i + 1;
           const targetNode = j + 1;
-          const pair = `(${sourceNode},${targetNode})`;
-          const reversePair = `(${targetNode},${sourceNode})`;
-  
-          if (!visitedPairs.has(pair) && !visitedPairs.has(reversePair)) {
-            pairs.push(pair, reversePair);
-            visitedPairs.add(pair);
-            visitedPairs.add(reversePair);
+          const pair1 = `(${sourceNode},${targetNode})`;
+          const pair2 = `(${targetNode},${sourceNode})`;
+
+          if (relationMatrix[j][i] === 1) {
+            if (!undirectedEdges.has(pair1) && !undirectedEdges.has(pair2)) {
+              undirectedEdges.add(pair1);
+              edges.push({
+                data: {
+                  id: pair1,
+                  source: sourceNode,
+                  target: targetNode,
+                  undirected: true,
+                },
+                classes: "undirected",
+              });
+            }
+          } else {
+            edges.push({
+              data: {
+                id: pair1,
+                source: sourceNode,
+                target: targetNode,
+              },
+            });
+          }
+
+          if (!nodes.find((node) => node.data.id === sourceNode.toString())) {
+            nodes.push({
+              data: { id: sourceNode.toString() },
+            });
+          }
+          if (!nodes.find((node) => node.data.id === targetNode.toString())) {
+            nodes.push({
+              data: { id: targetNode.toString() },
+            });
           }
         }
       });
     });
-    setOrderedPairs(pairs.join(", "));
+
+    setGraphData({ nodes, edges });
+    setClearGraph((prevState) => !prevState);
   }, [relationMatrix]);
 
-  const handleClearGraph = () => {
+  const handleClearPage = () => {
     setGraphData({ nodes: [], edges: [] });
-    setInputValue("");
     setMatrixSize(0);
     setRelationMatrix([]);
-    setClearGraph((prevState) => !prevState);
+    setOrderedPairs([]);
+    setSelectedNodes([]);
+    setDegrees([]);
   };
 
   const toggleNodeSelection = (nodeId) => {
@@ -227,7 +251,13 @@ const Graphs = () => {
           ))}
         </div>
         <h3>Conjunto de pares ordenados</h3>
-        <div className={styles.ordered_pairs_container}>{orderedPairs}</div>
+        <div className={styles.ordered_pairs_container}>
+          {"{"}
+          {orderedPairs.map((pair, index) => (
+            <span key={index}>{index > 0 ? ", " : ""}{pair}</span>
+          ))}
+          {"}"}
+        </div>
         <div>
           <h3>Calcular Grados</h3>
           <div>
@@ -262,8 +292,8 @@ const Graphs = () => {
       <div className={styles.cols_container}>
         <div className={styles.results_container}>
           <div className={styles.buttons_container}>
-            <button className={styles.main_button} onClick={handleClearGraph}>
-              Limpiar
+            <button className={styles.main_button} onClick={handleClearPage}>
+              Limpiar Página
             </button>
           </div>
         </div>
