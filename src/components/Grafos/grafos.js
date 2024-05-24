@@ -1,216 +1,3 @@
-// import React, { useState, useEffect } from "react";
-// import cytoscape from "cytoscape";
-// import dagre from "cytoscape-dagre";
-// import styles from "./Graphs.module.css";
-
-// cytoscape.use(dagre);
-
-// const Graphs = () => {
-//   const [inputValue, setInputValue] = useState("");
-//   const [graphData, setGraphData] = useState({
-//     nodes: [],
-//     edges: [],
-//   });
-//   const [clearGraph, setClearGraph] = useState(false);
-//   const [relationMatrix, setRelationMatrix] = useState("");
-
-//   useEffect(() => {
-//     if (
-//       graphData.nodes.length === 0 &&
-//       graphData.edges.length === 0 &&
-//       !clearGraph
-//     )
-//       return;
-
-//     const cy = cytoscape({
-//       container: document.getElementById("cy"),
-//       boxSelectionEnabled: false,
-//       autounselectify: true,
-//       style: cytoscape
-//         .stylesheet()
-//         .selector("node")
-//         .style({
-//           content: "data(id)",
-//         })
-//         .selector("edge")
-//         .style({
-//           "curve-style": "bezier",
-//           "target-arrow-shape": "triangle",
-//           width: 4,
-//           "line-color": "#ddd",
-//           "target-arrow-color": "#ddd",
-//           "transition-property": "line-color, target-arrow-color",
-//           "transition-duration": "0.5s",
-//         })
-//         .selector(".highlighted")
-//         .style({
-//           "background-color": "#14297b",
-//           "line-color": "#61bffc",
-//           "target-arrow-color": "#61bffc",
-//           "transition-property":
-//             "background-color, line-color, target-arrow-color",
-//           "transition-duration": "0.5s",
-//         }),
-//       elements: graphData,
-//       layout: {
-//         name: "dagre",
-//         rankDir: "BT",
-//         nodeDimensionsIncludeLabels: true,
-//         padding: 10,
-//       },
-//     });
-
-//     cy.nodes().forEach((node, i) => {
-//       setTimeout(() => {
-//         node.addClass("highlighted");
-//         const edges = node.connectedEdges();
-//         edges.forEach((edge, j) => {
-//           setTimeout(() => {
-//             edge.addClass("highlighted");
-//           }, (j + 1) * 1000);
-//         });
-//       }, i * 2000);
-//     });
-
-//     return () => {
-//       cy.destroy();
-//     };
-//   }, [graphData, clearGraph]);
-
-//   const handleInputChange = (e) => {
-//     setInputValue(e.target.value);
-//   };
-
-//   const handleGenerateGraph = () => {
-//     const pairs = inputValue.match(/\(([^)]+)\)/g);
-//     if (!pairs) return;
-
-//     const nodesMap = new Map(); // Usaremos un Map para evitar nodos duplicados
-//     const edges = [];
-
-//     let maxNode = 0;
-
-//     pairs.forEach((pair) => {
-//       const [source, target] = pair.replace(/[()]/g, "").split(",");
-//       const sourceId = parseInt(source);
-//       const targetId = parseInt(target);
-//       nodesMap.set(sourceId, true);
-//       nodesMap.set(targetId, true);
-//       edges.push({
-//         data: {
-//           id: `${sourceId}-${targetId}`,
-//           source: sourceId,
-//           target: targetId,
-//         },
-//       });
-
-//       maxNode = Math.max(maxNode, sourceId, targetId);
-//     });
-
-//     const nodes = Array.from(nodesMap.keys()).map((nodeId) => ({
-//       data: { id: nodeId },
-//     }));
-
-//     setGraphData({ nodes, edges });
-//     setClearGraph((prevState) => !prevState);
-//   };
-
-//   const handleClearGraph = () => {
-//     setGraphData({ nodes: [], edges: [] });
-//     setInputValue("");
-//     setRelationMatrix("");
-//     setClearGraph((prevState) => !prevState);
-//   };
-
-//   const handleGenerateMatrix = () => {
-//     const pairs = inputValue.match(/\(([^)]+)\)/g);
-//     if (!pairs) return;
-
-//     let maxNode = 0;
-//     pairs.forEach((pair) => {
-//       const [source, target] = pair.replace(/[()]/g, "").split(",");
-//       const sourceId = parseInt(source);
-//       const targetId = parseInt(target);
-//       maxNode = Math.max(maxNode, sourceId, targetId);
-//     });
-
-//     const matrixSize = maxNode;
-//     const matrix = Array.from({ length: matrixSize }, () =>
-//       Array(matrixSize).fill(0)
-//     );
-
-//     const edges = [];
-//     pairs.forEach((pair) => {
-//       const [source, target] = pair.replace(/[()]/g, "").split(",");
-//       const sourceId = parseInt(source);
-//       const targetId = parseInt(target);
-//       edges.push({ source: sourceId, target: targetId });
-//     });
-
-//     edges.forEach((edge) => {
-//       matrix[edge.source - 1][edge.target - 1] = 1;
-//     });
-
-//     // Convertir la matriz a la cadena de texto con el formato requerido
-//     const matrixText = matrix.map((row) => row.join("")).join("\n");
-
-//     setRelationMatrix(matrixText);
-//   };
-
-//   return (
-//     <div className={`page ${styles.container}`}>
-//       <div className={styles.content}>
-//         <h2>Grafos</h2>
-//         <div>
-//           <input
-//             className={styles.input}
-//             placeholder="Ingrese el conjunto de pares ordenados: (1,2);(3,4);(5,6)"
-//             type="text"
-//             value={inputValue}
-//             onChange={handleInputChange}
-//           />
-//           <h3>Matriz de Adyacencia</h3>
-          
-//         </div>
-        
-//       </div>
-      
-//       <div className={styles.cols_container}>
-//           <div className={styles.results_container}>
-//             <div className={styles.buttons_container}>
-//               <button
-//                 className={styles.main_button}
-//                 onClick={handleGenerateGraph}
-//               >
-//                 Generar Grafo
-//               </button>
-//               <button className={styles.main_button} onClick={handleClearGraph}>
-//                 Limpiar
-//               </button>
-//               <button
-//                 className={styles.main_button}
-//                 onClick={handleGenerateMatrix}
-//               >
-//                 Generar Matriz
-//               </button>
-//             </div>
-
-//             <div style={{ marginTop: "20px" }}>
-//               <h3>Matriz de Relación:</h3>
-//               <br />
-//               <pre  className={styles.matrix_result}>{relationMatrix}</pre>
-//             </div>
-//           </div>
-
-//           <div className={styles.graph_container}>
-//             <div id="cy" style={{ minHeight: "100vh", width: "100%" }}></div>
-//           </div>
-//         </div>
-//     </div>
-//   );
-// };
-
-// export default Graphs;
 import React, { useState, useEffect } from "react";
 import cytoscape from "cytoscape";
 import dagre from "cytoscape-dagre";
@@ -227,7 +14,9 @@ const Graphs = () => {
   });
   const [clearGraph, setClearGraph] = useState(false);
   const [relationMatrix, setRelationMatrix] = useState([]);
-  const [matrixInput, setMatrixInput] = useState("");
+  const [orderedPairs, setOrderedPairs] = useState("");
+  const [selectedNodes, setSelectedNodes] = useState([]);
+  const [degrees, setDegrees] = useState([]);
 
   useEffect(() => {
     if (
@@ -292,6 +81,29 @@ const Graphs = () => {
     };
   }, [graphData, clearGraph]);
 
+  useEffect(() => {
+    if (relationMatrix.length === 0) return;
+
+    const pairs = [];
+    const visitedPairs = new Set();
+    relationMatrix.forEach((row, i) => {
+      row.forEach((value, j) => {
+        if (value === 1) {
+          const sourceNode = i + 1;
+          const targetNode = j + 1;
+          const pair1 = `${sourceNode}-${targetNode}`;
+          const pair2 = `${targetNode}-${sourceNode}`;
+          if (!visitedPairs.has(pair1) && !visitedPairs.has(pair2)) {
+            visitedPairs.add(pair1);
+            visitedPairs.add(pair2);
+            pairs.push(`(${sourceNode},${targetNode})`);
+          }
+        }
+      });
+    });
+    setOrderedPairs(`{${pairs.join(", ")}}`);
+  }, [relationMatrix]);
+
   const handleInputChange = (e) => {
     setInputValue(e.target.value);
   };
@@ -324,21 +136,29 @@ const Graphs = () => {
     relationMatrix.forEach((row, i) => {
       row.forEach((value, j) => {
         if (value === 1) {
-          edges.push({
-            data: {
-              id: `${i}-${j}`,
-              source: i,
-              target: j,
-            },
-          });
-          if (!nodes.find((node) => node.data.id === i.toString())) {
-            nodes.push({
-              data: { id: i.toString() },
+          const sourceNode = i + 1;
+          const targetNode = j + 1;
+          const edgeId = `${sourceNode}-${targetNode}`;
+          const edge = edges.find((e) => e.data.id === edgeId);
+          if (edge) {
+            edge.classes = "undirected";
+          } else {
+            edges.push({
+              data: {
+                id: edgeId,
+                source: sourceNode,
+                target: targetNode,
+              },
             });
           }
-          if (!nodes.find((node) => node.data.id === j.toString())) {
+          if (!nodes.find((node) => node.data.id === sourceNode.toString())) {
             nodes.push({
-              data: { id: j.toString() },
+              data: { id: sourceNode.toString() },
+            });
+          }
+          if (!nodes.find((node) => node.data.id === targetNode.toString())) {
+            nodes.push({
+              data: { id: targetNode.toString() },
             });
           }
         }
@@ -355,6 +175,30 @@ const Graphs = () => {
     setMatrixSize(0);
     setRelationMatrix([]);
     setClearGraph((prevState) => !prevState);
+  };
+
+  const toggleNodeSelection = (nodeId) => {
+    setSelectedNodes((prevSelectedNodes) => {
+      if (prevSelectedNodes.includes(nodeId)) {
+        return prevSelectedNodes.filter((node) => node !== nodeId);
+      } else {
+        return [...prevSelectedNodes, nodeId];
+      }
+    });
+  };
+
+  const calculateDegrees = () => {
+    const degrees = selectedNodes.map((nodeId) => {
+      const degree = graphData.edges.reduce((count, edge) => {
+        if (edge.data.source === nodeId || edge.data.target === nodeId) {
+          return count + 1;
+        } else {
+          return count;
+        }
+      }, 0);
+      return { nodeId, degree };
+    });
+    setDegrees(degrees);
   };
 
   return (
@@ -389,6 +233,37 @@ const Graphs = () => {
             </div>
           ))}
         </div>
+        <h3>Conjunto de pares ordenados</h3>
+        <div className={styles.ordered_pairs_container}>{orderedPairs}</div>
+        <div>
+          <h3>Calcular Grados</h3>
+          <div>
+            {graphData.nodes.map((node) => (
+              <div key={node.data.id}>
+                <input
+                  type="checkbox"
+                  id={`node-${node.data.id}`}
+                  checked={selectedNodes.includes(node.data.id)}
+                  onChange={() => toggleNodeSelection(node.data.id)}
+                />
+                <label htmlFor={`node-${node.data.id}`}>{node.data.id}</label>
+              </div>
+            ))}
+          </div>
+          <button
+            className={styles.main_button}
+            onClick={calculateDegrees}
+          >
+            Calcular
+          </button>
+          <div>
+            {degrees.map((nodeDegree) => (
+              <div key={nodeDegree.nodeId}>
+                Nodo {nodeDegree.nodeId}: Grado {nodeDegree.degree}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className={styles.cols_container}>
@@ -399,7 +274,6 @@ const Graphs = () => {
             </button>
           </div>
         </div>
-
         <div className={styles.graph_container}>
           <div id="cy" style={{ minHeight: "100vh", width: "100%" }}></div>
         </div>
@@ -409,3 +283,5 @@ const Graphs = () => {
 };
 
 export default Graphs;
+
+
