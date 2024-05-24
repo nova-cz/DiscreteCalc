@@ -63,6 +63,16 @@
   flex-direction: row;
   justify-content: center;
   margin: auto 0px;
+  position: relative;
+}
+
+.outsideElements {
+    color: rgb(0, 0, 0);
+    font-size: larger;
+    height: -moz-fit-content;
+    height: fit-content;
+    position: absolute;
+    top: 0;
 }
 
 .results_container {

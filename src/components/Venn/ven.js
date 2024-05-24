@@ -10,6 +10,7 @@ const VennDiagram = () => {
   const [currentSet, setCurrentSet] = useState("");
   const [error, setError] = useState("");
   const [vennRegions, setVennRegions] = useState([]);
+  const [outsideElements, setOutsideElements] = useState([]);
   const vennRef = useRef(null);
 
   const generateVennDiagram = () => {
@@ -121,6 +122,19 @@ const VennDiagram = () => {
         }
         d3.select(this).text(labelText);
       });
+
+      const allElementsInSets = sets.flat();
+      const outsideElems = universalSet.filter(
+        (elem) => !allElementsInSets.includes(elem)
+      );
+      setOutsideElements(outsideElems);
+
+      const outsideDiv = d3
+        .select(vennRef.current)
+        .append("div")
+        .attr("class", styles.outsideElements)
+
+      outsideDiv.append("p").text(outsideElems.join(", "));
     }
   };
 
@@ -171,6 +185,7 @@ const VennDiagram = () => {
     setCurrentSet("");
     setError("");
     setVennRegions([]);
+    setOutsideElements([]);
     if (vennRef.current) {
       d3.select(vennRef.current).selectAll("*").remove();
     }
