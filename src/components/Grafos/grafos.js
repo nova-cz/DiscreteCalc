@@ -16,6 +16,10 @@ const Graphs = () => {
   const [orderedPairs, setOrderedPairs] = useState([]);
   const [selectedNodes, setSelectedNodes] = useState([]);
   const [degrees, setDegrees] = useState([]);
+  const [pathStart, setPathStart] = useState("");
+  const [pathEnd, setPathEnd] = useState("");
+  const [shortestPath, setShortestPath] = useState("");
+  const [explanation, setExplanation] = useState([]);
 
   useEffect(() => {
     if (
@@ -185,13 +189,11 @@ const Graphs = () => {
     setClearGraph((prevState) => !prevState);
   }, [relationMatrix]);
 
-  const handleClearPage = () => {
+  const handleClearGraph = () => {
     setGraphData({ nodes: [], edges: [] });
     setMatrixSize(0);
     setRelationMatrix([]);
-    setOrderedPairs([]);
-    setSelectedNodes([]);
-    setDegrees([]);
+    setClearGraph((prevState) => !prevState);
   };
 
   const toggleNodeSelection = (nodeId) => {
@@ -217,6 +219,91 @@ const Graphs = () => {
     });
     setDegrees(degrees);
   };
+
+  const handleClearPage = () => {
+    setGraphData({ nodes: [], edges: [] });
+    setMatrixSize(0);
+    setRelationMatrix([]);
+    setOrderedPairs([]);
+    setSelectedNodes([]);
+    setDegrees([]);
+    setPathStart("");
+    setPathEnd("");
+    setShortestPath("");
+    setExplanation([]);
+  };
+
+  const handlePathStartChange = (e) => {
+    setPathStart(e.target.value);
+  };
+
+  const handlePathEndChange = (e) => {
+    setPathEnd(e.target.value);
+  };
+
+  const findShortestPath = () => {
+    if (!pathStart || !pathEnd || relationMatrix.length === 0) {
+      // Verificar si se han seleccionado nodos de origen y destino y si la matriz está vacía
+      console.log("Selecciona nodos de origen y destino y crea la matriz");
+      return;
+    }
+  
+    const N = relationMatrix.length;
+    const dist = Array(N).fill(Number.MAX_VALUE); // Inicializar todas las distancias a infinito
+    const visited = Array(N).fill(false); // Inicializar todos los nodos como no visitados
+    const path = Array(N).fill(-1); // Inicializar el array de padres
+  
+    // La distancia al nodo de origen es 0
+    dist[pathStart - 1] = 0;
+  
+    for (let i = 0; i < N - 1; i++) {
+      // Encontrar el nodo con la distancia mínima
+      let u = -1;
+      for (let v = 0; v < N; v++) {
+        if (!visited[v] && (u === -1 || dist[v] < dist[u])) {
+          u = v;
+        }
+      }
+  
+      // Marcar el nodo seleccionado como visitado
+      visited[u] = true;
+  
+      // Actualizar las distancias de los nodos adyacentes
+      for (let v = 0; v < N; v++) {
+        if (
+          !visited[v] &&
+          relationMatrix[u][v] !== 0 &&
+          dist[u] + relationMatrix[u][v] < dist[v]
+        ) {
+          dist[v] = dist[u] + relationMatrix[u][v];
+          path[v] = u;
+        }
+      }
+    }
+  
+    // Reconstruir el camino más corto
+    const shortestPathNodes = [];
+    let currentNode = pathEnd - 1;
+    while (currentNode !== -1) {
+      shortestPathNodes.unshift(currentNode + 1);
+      currentNode = path[currentNode];
+    }
+  
+    // Construir la explicación del camino más corto
+    const explanation = [];
+    for (let i = 0; i < shortestPathNodes.length - 1; i++) {
+      const currentNode = shortestPathNodes[i];
+      const nextNode = shortestPathNodes[i + 1];
+      const edgeWeight = relationMatrix[currentNode - 1][nextNode - 1];
+      explanation.push(`Desde el nodo ${currentNode} hasta el nodo ${nextNode} con un peso de ${edgeWeight}`);
+    }
+  
+    // Establecer el resultado en el estado
+    setShortestPath(shortestPathNodes);
+    setExplanation(explanation);
+  };
+  
+  
 
   return (
     <div className={`page ${styles.container}`}>
@@ -285,6 +372,36 @@ const Graphs = () => {
                 Nodo {nodeDegree.nodeId}: Grado {nodeDegree.degree}
               </div>
             ))}
+          </div>
+        </div>
+        <h3>Buscar Camino Más Corto</h3>
+        <div>
+          <input
+            className={styles.input}
+            placeholder="Nodo de inicio"
+            type="text"
+            value={pathStart}
+            onChange={handlePathStartChange}
+          />
+          <input
+            className={styles.input}
+            placeholder="Nodo de fin"
+            type="text"
+            value={pathEnd}
+            onChange={handlePathEndChange}
+          />
+          <button
+            className={styles.main_button}
+            onClick={findShortestPath}
+          >
+            Encontrar Camino Más Corto
+          </button>
+          <div>
+            {shortestPath && (
+              <div>
+                Camino más corto de {pathStart} a {pathEnd}: {shortestPath}
+              </div>
+            )}
           </div>
         </div>
       </div>
