@@ -10,6 +10,7 @@ const VennDiagram = () => {
   const [currentSet, setCurrentSet] = useState("");
   const [error, setError] = useState("");
   const [vennRegions, setVennRegions] = useState([]);
+  const [regionList, setRegionList] = useState([]);
   const [outsideElements, setOutsideElements] = useState([]);
   const vennRef = useRef(null);
 
@@ -24,8 +25,11 @@ const VennDiagram = () => {
       const setsData = sets.map((set, index) => ({
         sets: [`${String.fromCharCode(65 + index)}`],
         size: set.length,
-        label: labels[index].label,
-        elements: set,
+        label:
+          set.length > 0
+            ? labels[index].label
+            : String.fromCharCode(65 + index),
+        elements: set.length > 0 ? set : [],
         color: labels[index].color,
       }));
 
@@ -34,7 +38,7 @@ const VennDiagram = () => {
         for (let j = i + 1; j < sets.length; j++) {
           const intersection = sets[i].filter((x) => sets[j].includes(x));
           if (intersection.length > 0) {
-            setsData.push({
+            const intersectionSet = {
               sets: [
                 `${String.fromCharCode(65 + i)}`,
                 `${String.fromCharCode(65 + j)}`,
@@ -42,30 +46,15 @@ const VennDiagram = () => {
               size: intersection.length,
               elements: intersection,
               color: colors(sets.length),
-            });
-          }
-        }
-      }
-
-      // Calculate three-way intersections
-      for (let i = 0; i < sets.length; i++) {
-        for (let j = i + 1; j < sets.length; j++) {
-          for (let k = j + 1; k < sets.length; k++) {
-            const intersection = sets[i]
-              .filter((x) => sets[j].includes(x))
-              .filter((x) => sets[k].includes(x));
-            if (intersection.length > 0) {
-              setsData.push({
-                sets: [
-                  `${String.fromCharCode(65 + i)}`,
-                  `${String.fromCharCode(65 + j)}`,
-                  `${String.fromCharCode(65 + k)}`,
-                ],
-                size: intersection.length,
-                elements: intersection,
-                color: colors(sets.length),
-              });
-            }
+            };
+            setsData.push(intersectionSet);
+            // Remove intersection elements from the original sets
+            setsData[i].elements = setsData[i].elements.filter(
+              (elem) => !intersection.includes(elem)
+            );
+            setsData[j].elements = setsData[j].elements.filter(
+              (elem) => !intersection.includes(elem)
+            );
           }
         }
       }
@@ -76,6 +65,17 @@ const VennDiagram = () => {
 
       const regions = d3.select(vennRef.current).datum();
       setVennRegions(regions);
+
+      const regionList = regions.map((region, index) => {
+        const regionSets = region.sets.join(" ∩ ");
+        const regionElements = region.elements.join(", ");
+        return (
+          <li key={index}>
+            {regionSets}: {regionElements}
+          </li>
+        );
+      });
+      setRegionList(regionList);
 
       const tooltip = d3
         .select("body")
@@ -123,18 +123,12 @@ const VennDiagram = () => {
         d3.select(this).text(labelText);
       });
 
+      // Find elements in the universal set that are not in any subset
       const allElementsInSets = sets.flat();
       const outsideElems = universalSet.filter(
         (elem) => !allElementsInSets.includes(elem)
       );
       setOutsideElements(outsideElems);
-
-      const outsideDiv = d3
-        .select(vennRef.current)
-        .append("div")
-        .attr("class", styles.outsideElements)
-
-      outsideDiv.append("p").text(outsideElems.join(", "));
     }
   };
 
@@ -185,6 +179,7 @@ const VennDiagram = () => {
     setCurrentSet("");
     setError("");
     setVennRegions([]);
+    setRegionList([]);
     setOutsideElements([]);
     if (vennRef.current) {
       d3.select(vennRef.current).selectAll("*").remove();
@@ -196,10 +191,7 @@ const VennDiagram = () => {
       <h2>Diagramas de Venn</h2>
 
       <div className={styles.inputs_container}>
-        <form
-          className={styles.input_form}
-          onSubmit={handleUniversalSetSubmit}
-        >
+        <form className={styles.input_form} onSubmit={handleUniversalSetSubmit}>
           <label htmlFor="universe">Conjunto Universo:</label>
           <div className={styles.input_container}>
             <input
@@ -248,7 +240,11 @@ const VennDiagram = () => {
 
       <div className={styles.cols_container}>
         <div className={styles.venn_container}>
-          <div className={styles.venn} ref={vennRef}></div>
+          <div className={styles.venn} ref={vennRef}>
+            <div className={styles.outsideElements}>
+              <p>{outsideElements.join(" , ")}</p>
+            </div>
+          </div>
         </div>
 
         <div className={styles.results_container}>
@@ -272,13 +268,7 @@ const VennDiagram = () => {
             ))}
           </ul>
           <h3>Regiones del Diagrama:</h3>
-          <ul>
-            {vennRegions.map((region, index) => (
-              <li key={index}>
-                {region.sets.join(" ∩ ")}: {region.size}
-              </li>
-            ))}
-          </ul>
+          <ul>{regionList}</ul>
         </div>
       </div>
     </div>
