@@ -46,6 +46,10 @@ const Graphs = () => {
           "transition-property": "line-color, target-arrow-color",
           "transition-duration": "0.5s",
         })
+        .selector(".undirected")
+        .style({
+          "target-arrow-shape": "none", // Sin flecha en el extremo
+        })
         .selector(".highlighted")
         .style({
           "background-color": "#14297b",
@@ -83,7 +87,7 @@ const Graphs = () => {
 
   useEffect(() => {
     if (relationMatrix.length === 0) return;
-
+  
     const pairs = [];
     const visitedPairs = new Set();
     relationMatrix.forEach((row, i) => {
@@ -91,18 +95,23 @@ const Graphs = () => {
         if (value === 1) {
           const sourceNode = i + 1;
           const targetNode = j + 1;
-          const pair1 = `${sourceNode}-${targetNode}`;
-          const pair2 = `${targetNode}-${sourceNode}`;
-          if (!visitedPairs.has(pair1) && !visitedPairs.has(pair2)) {
+          const pair1 = `(${sourceNode},${targetNode})`;
+          const pair2 = `(${targetNode},${sourceNode})`;
+  
+          if (!visitedPairs.has(pair1)) {
             visitedPairs.add(pair1);
+            pairs.push(pair1);
+          }
+          if (!visitedPairs.has(pair2)) {
             visitedPairs.add(pair2);
-            pairs.push(`(${sourceNode},${targetNode})`);
+            pairs.push(pair2);
           }
         }
       });
     });
-    setOrderedPairs(`{${pairs.join(", ")}}`);
+    setOrderedPairs(pairs.join(", "));
   }, [relationMatrix]);
+  
 
   const handleInputChange = (e) => {
     setInputValue(e.target.value);
@@ -130,43 +139,27 @@ const Graphs = () => {
   };
 
   useEffect(() => {
-    const nodes = [];
-    const edges = [];
-
+    if (relationMatrix.length === 0) return;
+  
+    const pairs = [];
+    const visitedPairs = new Set();
     relationMatrix.forEach((row, i) => {
       row.forEach((value, j) => {
         if (value === 1) {
           const sourceNode = i + 1;
           const targetNode = j + 1;
-          const edgeId = `${sourceNode}-${targetNode}`;
-          const edge = edges.find((e) => e.data.id === edgeId);
-          if (edge) {
-            edge.classes = "undirected";
-          } else {
-            edges.push({
-              data: {
-                id: edgeId,
-                source: sourceNode,
-                target: targetNode,
-              },
-            });
-          }
-          if (!nodes.find((node) => node.data.id === sourceNode.toString())) {
-            nodes.push({
-              data: { id: sourceNode.toString() },
-            });
-          }
-          if (!nodes.find((node) => node.data.id === targetNode.toString())) {
-            nodes.push({
-              data: { id: targetNode.toString() },
-            });
+          const pair = `(${sourceNode},${targetNode})`;
+          const reversePair = `(${targetNode},${sourceNode})`;
+  
+          if (!visitedPairs.has(pair) && !visitedPairs.has(reversePair)) {
+            pairs.push(pair, reversePair);
+            visitedPairs.add(pair);
+            visitedPairs.add(reversePair);
           }
         }
       });
     });
-
-    setGraphData({ nodes, edges });
-    setClearGraph((prevState) => !prevState);
+    setOrderedPairs(pairs.join(", "));
   }, [relationMatrix]);
 
   const handleClearGraph = () => {
@@ -283,5 +276,3 @@ const Graphs = () => {
 };
 
 export default Graphs;
-
-
